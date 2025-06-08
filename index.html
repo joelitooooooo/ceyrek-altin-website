@@ -616,10 +616,16 @@
         let currentCurrency = 'EUR';
         let goldData = [];
 
-        // Supabase API Call
+        // Supabase API Call - MIT DEBUG LOGGING
         async function fetchFromSupabase(endpoint, params = {}) {
             const url = new URL(`${SUPABASE_CONFIG.url}/rest/v1/${endpoint}`);
             Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+
+            console.log('Supabase URL:', url.toString());
+            console.log('Supabase Headers:', {
+                'apikey': SUPABASE_CONFIG.anonKey.substring(0, 20) + '...',
+                'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey.substring(0, 20)}...`
+            });
 
             const response = await fetch(url, {
                 headers: {
@@ -629,67 +635,101 @@
                 }
             });
 
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+
             if (!response.ok) {
-                throw new Error(`Supabase Error: ${response.status}`);
+                const errorText = await response.text();
+                console.error('Supabase Error Response:', errorText);
+                throw new Error(`Supabase Error: ${response.status} - ${errorText}`);
             }
 
-            return response.json();
+            const data = await response.json();
+            console.log('Supabase Response Data:', data);
+            return data;
         }
 
-        // Aktuelle Preise laden
+        // Aktuelle Preise laden - GARANTIERT der neueste Wert nach DATE Feld
         async function loadCurrentPrices() {
             try {
+                console.log('Loading NEWEST price by DATE field...');
+                
+                // KORREKT: Nach dem DATE Feld sortieren, NICHT created_at
                 const data = await fetchFromSupabase('gold_prices', {
-                    'select': '*',
-                    'order': 'created_at.desc',
-                    'limit': '10'
+                    'select': 'sell_price_eur,sell_price_tl,date,created_at',
+                    'order': 'date.desc',           // NACH DATE FELD SORTIEREN!
+                    'limit': '1'                    // NUR DER ERSTE (NEUESTE)
                 });
 
+                console.log('Database response (newest by DATE first):', data);
+
                 if (data.length === 0) {
-                    throw new Error('Keine Daten verfügbar');
+                    throw new Error('Keine Daten in der Datenbank gefunden!');
                 }
 
-                const current = data[0];
-                const previous = data[1] || current;
-
-                displayPriceCards(current, previous);
-                updateLastUpdate(current.created_at);
+                const newestEntry = data[0];  // DER NEUESTE EINTRAG NACH DATE
+                console.log('NEWEST ENTRY by DATE field:', newestEntry);
+                console.log('DATE field of newest entry:', newestEntry.date);
+                console.log('EUR price from newest entry:', newestEntry.sell_price_eur);
+                console.log('TL price from newest entry:', newestEntry.sell_price_tl);
+                
+                // DIREKTE ANZEIGE der NEUESTEN Werte
+                displayPriceCards(newestEntry);
+                updateLastUpdate(newestEntry.date);  // DATE statt created_at
 
             } catch (error) {
-                console.error('Fehler beim Laden der Preise:', error);
+                console.error('KRITISCHER FEHLER beim Laden der Preise:', error);
                 document.getElementById('priceCards').innerHTML = `
                     <div class="error-message">
-                        ⚠️ Fehler beim Laden der Goldpreise: ${error.message}
+                        ⚠️ KRITISCHER FEHLER: ${error.message}
+                        <br>Datenbank nicht erreichbar!
+                        <br><button onclick="loadCurrentPrices()" style="margin-top: 10px; padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer;">ERNEUT VERSUCHEN</button>
                     </div>
                 `;
             }
         }
 
-        // Price Cards anzeigen - nur aktuelle Verkaufspreise ohne Veränderung
-        function displayPriceCards(current, previous) {
+        // Price Cards anzeigen - EXAKT die Werte vom neuesten DB-Eintrag
+        function displayPriceCards(newestEntry) {
+            console.log('Displaying NEWEST price cards with:', newestEntry);
+            
+            // DIREKTE Verwendung - KEIN formatPrice() das Probleme machen könnte
+            const eurPrice = newestEntry.sell_price_eur;
+            const tlPrice = newestEntry.sell_price_tl;
+            
+            console.log('ANZEIGE - EUR Price:', eurPrice);
+            console.log('ANZEIGE - TL Price:', tlPrice);
+
+            // Sicherstellen dass die Werte wirklich ankommen
+            if (!eurPrice || !tlPrice) {
+                console.error('WARNUNG: Leere Preise vom neuesten Eintrag!');
+            }
+
             document.getElementById('priceCards').innerHTML = `
                 <div class="price-card">
-                    <h3>Verkaufspreis</h3>
-                    <div class="price-value">${formatPrice(current.sell_price_eur)}</div>
+                    <h3>Verkaufspreis (NEUESTER)</h3>
+                    <div class="price-value">${eurPrice || 'FEHLER'}</div>
                     <div class="price-currency">Euro</div>
                 </div>
 
                 <div class="price-card">
-                    <h3>Verkaufspreis</h3>
-                    <div class="price-value">${formatPrice(current.sell_price_tl)}</div>
+                    <h3>Verkaufspreis (NEUESTER)</h3>
+                    <div class="price-value">${tlPrice || 'FEHLER'}</div>
                     <div class="price-currency">Türk Lirası</div>
                 </div>
             `;
+            
+            console.log('Price cards updated with newest values');
         }
 
-        // Chart-Daten laden mit robuster Fehlerbehandlung
+        // Chart-Daten laden mit DATE Feld statt created_at
         async function loadChartData(period) {
             try {
                 console.log(`Loading chart data for period: ${period}`);
                 
                 let queryParams = {
-                    'select': 'created_at,sell_price_tl,sell_price_eur',
-                    'order': 'created_at.asc'
+                    'select': 'date,sell_price_tl,sell_price_eur',  // DATE statt created_at
+                    'order': 'date.asc'                             // DATE statt created_at
                 };
 
                 // Bestimme den Zeitraum für die Datenabfrage
@@ -718,9 +758,9 @@
 
                 // Formatiere das Startdatum korrekt für Supabase
                 const startDateString = startDate.toISOString().slice(0, 19);
-                queryParams['gte'] = `created_at.${startDateString}`;
+                queryParams['gte'] = `date.${startDateString}`;  // DATE statt created_at
                 
-                console.log(`Querying data from: ${startDateString}`);
+                console.log(`Querying data from DATE: ${startDateString}`);
 
                 const data = await fetchFromSupabase('gold_prices', queryParams);
                 
@@ -730,8 +770,8 @@
                     console.warn(`No data available for period ${period}`);
                     // Versuche Fallback mit allen verfügbaren Daten
                     const fallbackData = await fetchFromSupabase('gold_prices', {
-                        'select': 'created_at,sell_price_tl,sell_price_eur',
-                        'order': 'created_at.desc',
+                        'select': 'date,sell_price_tl,sell_price_eur',  // DATE statt created_at
+                        'order': 'date.desc',                           // DATE statt created_at
                         'limit': '100'
                     });
                     
@@ -802,9 +842,9 @@
                 return;
             }
 
-            // Labels basierend auf Zeitraum formatieren
+            // Labels basierend auf Zeitraum formatieren - MIT DATE FELD
             const labels = goldData.map(item => {
-                const date = new Date(item.created_at);
+                const date = new Date(item.date);  // DATE statt created_at
                 
                 switch(currentPeriod) {
                     case '1D':
@@ -904,7 +944,7 @@
                                 callbacks: {
                                     title: function(context) {
                                         const dataIndex = context[0].dataIndex;
-                                        const originalDate = new Date(goldData[dataIndex].created_at);
+                                        const originalDate = new Date(goldData[dataIndex].date);  // DATE statt created_at
                                         return originalDate.toLocaleString('de-DE');
                                     },
                                     label: function(context) {
