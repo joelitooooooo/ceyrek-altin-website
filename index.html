@@ -72,48 +72,29 @@
         }
 
         .header h1 {
-            font-size: 7rem;
-            font-weight: 900;
+            font-size: 5.5rem;
+            font-weight: 300;
             margin-bottom: 60px;
-            letter-spacing: -0.01em;
-            line-height: 0.85;
+            letter-spacing: -0.02em;
+            line-height: 0.9;
             position: relative;
+            color: #1a1a1a;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', 'Helvetica Neue', sans-serif;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             text-rendering: optimizeLegibility;
-            font-feature-settings: "kern" 1, "liga" 1;
-            filter: contrast(1.4) saturate(1.3);
         }
-
-        .header h1 .char {
-            display: inline-block;
-        }
-
-        .header h1 .char:nth-child(1) { color: #8F87F1; text-shadow: 0 2px 4px rgba(0,0,0,0.3); } /* Ç */
-        .header h1 .char:nth-child(2) { color: #C68EFD; text-shadow: 0 2px 4px rgba(0,0,0,0.3); } /* e */
-        .header h1 .char:nth-child(3) { color: #E9A5F1; text-shadow: 0 2px 4px rgba(0,0,0,0.3); } /* y */
-        .header h1 .char:nth-child(4) { color: #FED2E2; text-shadow: 0 2px 4px rgba(0,0,0,0.3); } /* r */
-        .header h1 .char:nth-child(5) { color: #8F87F1; text-shadow: 0 2px 4px rgba(0,0,0,0.3); } /* e */
-        .header h1 .char:nth-child(6) { color: #C68EFD; text-shadow: 0 2px 4px rgba(0,0,0,0.3); } /* k */
-        .header h1 .char:nth-child(7) { color: #8F87F1; text-shadow: 0 2px 4px rgba(0,0,0,0.3); } /* (space) */
-        .header h1 .char:nth-child(8) { color: #E9A5F1; text-shadow: 0 2px 4px rgba(0,0,0,0.3); } /* A */
-        .header h1 .char:nth-child(9) { color: #FED2E2; text-shadow: 0 2px 4px rgba(0,0,0,0.3); } /* l */
-        .header h1 .char:nth-child(10) { color: #8F87F1; text-shadow: 0 2px 4px rgba(0,0,0,0.3); } /* t */
-        .header h1 .char:nth-child(11) { color: #C68EFD; text-shadow: 0 2px 4px rgba(0,0,0,0.3); } /* ı */
-        .header h1 .char:nth-child(12) { color: #E9A5F1; text-shadow: 0 2px 4px rgba(0,0,0,0.3); } /* n */
 
         .header h1::after {
             content: '';
             position: absolute;
-            bottom: -20px;
+            bottom: -15px;
             left: 50%;
             transform: translateX(-50%);
-            width: 250px;
-            height: 8px;
-            background: linear-gradient(90deg, #8F87F1, #C68EFD, #E9A5F1, #FED2E2);
-            border-radius: 4px;
-            animation: glow 2s ease-in-out infinite alternate;
-            box-shadow: 0 0 30px rgba(143, 135, 241, 0.6);
+            width: 80px;
+            height: 2px;
+            background: linear-gradient(90deg, #8F87F1, #C68EFD);
+            border-radius: 1px;
         }
 
         .price-cards {
@@ -289,63 +270,37 @@
         .chart-header h2 {
             font-size: 2.5rem;
             font-weight: 700;
-            background: linear-gradient(135deg, #8F87F1, #C68EFD);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #2a2a2a;
             margin-bottom: 10px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
         .chart-controls {
             display: flex;
             justify-content: center;
-            gap: 20px;
             margin-bottom: 40px;
-            flex-wrap: wrap;
         }
 
-        .chart-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 25px;
-            padding: 14px 28px;
-            font-size: 1rem;
+        .period-info {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 20px 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .period-info h3 {
+            font-size: 1.3rem;
             font-weight: 600;
-            color: rgba(26, 26, 26, 0.7);
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            font-family: inherit;
-            position: relative;
-            overflow: hidden;
+            color: rgba(26, 26, 26, 0.8);
+            margin-bottom: 5px;
         }
 
-        .chart-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            transition: left 0.5s;
-        }
-
-        .chart-btn:hover::before {
-            left: 100%;
-        }
-
-        .chart-btn.active {
-            background: linear-gradient(135deg, #8F87F1, #C68EFD);
-            color: white;
-            border-color: transparent;
-            box-shadow: 0 8px 25px rgba(143, 135, 241, 0.4);
-            transform: translateY(-2px);
-        }
-
-        .chart-btn:hover:not(.active) {
-            background: rgba(255, 255, 255, 0.35);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        .period-info p {
+            font-size: 1rem;
+            color: rgba(26, 26, 26, 0.6);
+            margin: 0;
         }
 
         .currency-toggle {
@@ -466,20 +421,20 @@
         }
 
         /* Responsive Design */
-        @media (max-width: 768px) {
+            @media (max-width: 768px) {
             .container {
                 padding: 40px 15px;
             }
             
             .header h1 {
-                font-size: 5rem;
+                font-size: 3.5rem;
                 margin-bottom: 40px;
             }
             
             .header h1::after {
-                width: 180px;
-                height: 6px;
-                bottom: -15px;
+                width: 60px;
+                height: 2px;
+                bottom: -12px;
             }
             
             .price-cards {
@@ -511,30 +466,49 @@
             }
             
             .chart-controls {
-                gap: 10px;
+                justify-content: center;
             }
             
-            .chart-btn {
-                padding: 10px 16px;
+            .period-info {
+                padding: 15px 20px;
+            }
+            
+            .period-info h3 {
+                font-size: 1.1rem;
+            }
+            
+            .period-info p {
                 font-size: 0.9rem;
             }
         }
 
         @media (max-width: 480px) {
             .header h1 {
-                font-size: 4rem;
+                font-size: 2.8rem;
                 margin-bottom: 30px;
             }
             
             .header h1::after {
-                width: 150px;
-                height: 5px;
-                bottom: -12px;
+                width: 50px;
+                height: 2px;
+                bottom: -10px;
             }
             
             .chart-controls {
-                flex-direction: column;
-                align-items: center;
+                margin-bottom: 30px;
+            }
+            
+            .period-info {
+                padding: 12px 18px;
+            }
+            
+            .period-info h3 {
+                font-size: 1rem;
+                margin-bottom: 3px;
+            }
+            
+            .period-info p {
+                font-size: 0.85rem;
             }
             
             .currency-toggle {
@@ -547,9 +521,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>
-                <span class="char">Ç</span><span class="char">e</span><span class="char">y</span><span class="char">r</span><span class="char">e</span><span class="char">k</span><span class="char">&nbsp;&nbsp;</span><span class="char">A</span><span class="char">l</span><span class="char">t</span><span class="char">ı</span><span class="char">n</span>
-            </h1>
+            <h1>Çeyrek Altın</h1>
         </div>
 
         <div class="price-cards" id="priceCards">
@@ -565,11 +537,10 @@
             </div>
 
             <div class="chart-controls">
-                <button class="chart-btn active" data-period="1D">24 Stunden</button>
-                <button class="chart-btn" data-period="7D">7 Tage</button>
-                <button class="chart-btn" data-period="1M">1 Monat</button>
-                <button class="chart-btn" data-period="3M">3 Monate</button>
-                <button class="chart-btn" data-period="1Y">1 Jahr</button>
+                <div class="period-info">
+                    <h3>Jahresansicht</h3>
+                    <p>Preisverlauf der letzten 12 Monate</p>
+                </div>
             </div>
 
             <div class="currency-toggle">
@@ -612,7 +583,6 @@
         };
 
         let chart = null;
-        let currentPeriod = '1D';
         let currentCurrency = 'EUR';
         let goldData = [];
 
@@ -722,19 +692,19 @@
             console.log('Price cards updated with newest values');
         }
 
-        // Chart-Daten laden - KOMPLETT VEREINFACHT ohne Filter
-        async function loadChartData(period) {
+        // Chart-Daten laden - JAHRESANSICHT (12 Monate)
+        async function loadChartData() {
             try {
-                console.log(`Loading chart data for period: ${period}`);
+                console.log('Loading chart data for 12 months (yearly view)');
                 
                 // EINFACH: Lade alle verfügbaren Daten ohne komplexe Filter
                 const queryParams = {
                     'select': 'date,sell_price_tl,sell_price_eur',
                     'order': 'date.desc',
-                    'limit': '1000'  // Maximal 1000 Einträge
+                    'limit': '2000'  // Genug Daten für ein ganzes Jahr
                 };
                 
-                console.log('Loading all available data...');
+                console.log('Loading yearly data...');
 
                 const data = await fetchFromSupabase('gold_prices', queryParams);
                 
@@ -747,35 +717,11 @@
                     // Sortiere chronologisch (älteste zuerst für Chart)
                     const sortedData = data.reverse();
                     
-                    // Clientseitige Filterung nach Zeitraum
+                    // Jahresfilter: Letzte 12 Monate
                     const now = new Date();
-                    let startDate;
+                    const startDate = new Date(now.getTime() - (12 * 30 * 24 * 60 * 60 * 1000));
                     
-                    switch(period) {
-                        case '1D':
-                            startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-                            break;
-                        case '7D':
-                            startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-                            break;
-                        case '1M':
-                            startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-                            break;
-                        case '3M':
-                            startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-                            break;
-                        case '1Y':
-                            startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-                            break;
-                        default:
-                            // Zeige alle Daten wenn Zeitraum unbekannt
-                            goldData = sortedData;
-                            updateChart();
-                            updateStatistics();
-                            return;
-                    }
-                    
-                    // Filtere die Daten nach Zeitraum
+                    // Filtere die Daten nach 12 Monaten
                     const filteredData = sortedData.filter(item => {
                         try {
                             const itemDate = new Date(item.date);
@@ -787,12 +733,12 @@
                     });
                     
                     goldData = filteredData;
-                    console.log(`Filtered to ${goldData.length} entries for period ${period}`);
+                    console.log(`Filtered to ${goldData.length} entries for yearly view (12 months)`);
                     
-                    // Falls keine Daten für den Zeitraum, zeige die letzten 10 Einträge
+                    // Falls keine Daten für das Jahr, zeige alle verfügbaren Daten
                     if (goldData.length === 0) {
-                        goldData = sortedData.slice(-10);
-                        console.log(`No data for period, showing last ${goldData.length} entries`);
+                        goldData = sortedData;
+                        console.log(`No yearly data, showing all ${goldData.length} available entries`);
                     }
                 }
 
@@ -807,7 +753,7 @@
                     console.log('Trying absolute fallback...');
                     const fallbackData = await fetchFromSupabase('gold_prices', {
                         'select': 'date,sell_price_tl,sell_price_eur',
-                        'limit': '50'
+                        'limit': '100'
                     });
                     
                     goldData = fallbackData;
@@ -826,7 +772,7 @@
                     <div class="error-message" style="margin: 50px 0; text-align: center;">
                         <h3 style="margin-bottom: 15px;">⚠️ Fehler beim Laden der Daten</h3>
                         <p>Datenbankfehler: ${error.message}</p>
-                        <button onclick="loadChartData('${currentPeriod}')" 
+                        <button onclick="loadChartData()" 
                                 style="margin-top: 15px; padding: 10px 20px; background: linear-gradient(135deg, #8F87F1, #C68EFD); 
                                        color: white; border: none; border-radius: 15px; cursor: pointer;">
                             Erneut versuchen
@@ -870,36 +816,15 @@
                 return;
             }
 
-            // Labels basierend auf Zeitraum formatieren - MIT DATE FELD
+            // Labels für Jahresansicht formatieren
             const labels = goldData.map(item => {
-                const date = new Date(item.date);  // DATE statt created_at
+                const date = new Date(item.date);
                 
-                switch(currentPeriod) {
-                    case '1D':
-                        return date.toLocaleTimeString('de-DE', {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        });
-                    case '7D':
-                        return date.toLocaleDateString('de-DE', {
-                            weekday: 'short',
-                            day: 'numeric'
-                        });
-                    case '1M':
-                        return date.toLocaleDateString('de-DE', {
-                            day: 'numeric',
-                            month: 'short'
-                        });
-                    case '3M':
-                    case '1Y':
-                        return date.toLocaleDateString('de-DE', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: currentPeriod === '1Y' ? '2-digit' : undefined
-                        });
-                    default:
-                        return date.toLocaleDateString('de-DE');
-                }
+                // Jahresansicht: Monat + Jahr
+                return date.toLocaleDateString('de-DE', {
+                    month: 'short',
+                    year: '2-digit'
+                });
             });
 
             const sellKey = currentCurrency === 'EUR' ? 'sell_price_eur' : 'sell_price_tl';
@@ -910,11 +835,8 @@
             gradientSell.addColorStop(0, 'rgba(233, 165, 241, 0.8)');
             gradientSell.addColorStop(1, 'rgba(254, 210, 226, 0.1)');
 
-            // Bestimme Anzahl der angezeigten Labels basierend auf Zeitraum
-            const maxLabels = currentPeriod === '1D' ? 12 : 
-                             currentPeriod === '7D' ? 7 : 
-                             currentPeriod === '1M' ? 10 : 
-                             currentPeriod === '3M' ? 12 : 8;
+            // Anzahl der angezeigten Labels für Jahresansicht
+            const maxLabels = 12;
 
             try {
                 chart = new Chart(ctx, {
@@ -933,7 +855,7 @@
                                 pointBackgroundColor: '#E9A5F1',
                                 pointBorderColor: '#ffffff',
                                 pointBorderWidth: 3,
-                                pointRadius: currentPeriod === '1D' ? 4 : 3,
+                                pointRadius: 2,
                                 pointHoverRadius: 8
                             }
                         ]
@@ -1104,16 +1026,7 @@
             `;
         }
 
-        // Event Listeners
-        document.querySelectorAll('.chart-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentPeriod = btn.dataset.period;
-                loadChartData(currentPeriod);
-            });
-        });
-
+        // Event Listeners für Währungs-Toggle
         document.querySelectorAll('.currency-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.currency-btn').forEach(b => b.classList.remove('active'));
@@ -1161,14 +1074,7 @@
 
         // Keyboard Navigation
         document.addEventListener('keydown', (e) => {
-            const periods = ['1D', '7D', '1M', '3M', '1Y'];
-            const currentIndex = periods.indexOf(currentPeriod);
-            
-            if (e.key === 'ArrowLeft' && currentIndex > 0) {
-                document.querySelector(`[data-period="${periods[currentIndex - 1]}"]`).click();
-            } else if (e.key === 'ArrowRight' && currentIndex < periods.length - 1) {
-                document.querySelector(`[data-period="${periods[currentIndex + 1]}"]`).click();
-            } else if (e.key === ' ') {
+            if (e.key === ' ') {
                 e.preventDefault();
                 // Spacebar toggles currency
                 const currencies = ['TL', 'EUR'];
@@ -1190,7 +1096,7 @@
             
             Promise.all([
                 loadCurrentPrices(),
-                loadChartData(currentPeriod)
+                loadChartData()
             ]).then(() => {
                 logPerformance('Initial load', startTime);
             }).catch(error => {
@@ -1212,7 +1118,7 @@
                 const refreshStart = performance.now();
                 Promise.all([
                     loadCurrentPrices(),
-                    loadChartData(currentPeriod)
+                    loadChartData()
                 ]).then(() => {
                     logPerformance('Auto refresh', refreshStart);
                 });
@@ -1227,7 +1133,7 @@
                 startAutoRefresh();
                 // Immediate refresh when tab becomes active
                 loadCurrentPrices();
-                loadChartData(currentPeriod);
+                loadChartData();
             }
         });
 
@@ -1238,7 +1144,7 @@
         window.addEventListener('online', () => {
             console.log('Network connection restored');
             loadCurrentPrices();
-            loadChartData(currentPeriod);
+            loadChartData();
         });
 
         window.addEventListener('offline', () => {
