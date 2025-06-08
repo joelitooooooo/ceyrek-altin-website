@@ -75,7 +75,7 @@
             font-size: 7rem;
             font-weight: 900;
             margin-bottom: 60px;
-            letter-spacing: -0.03em;
+            letter-spacing: -0.01em;
             line-height: 0.85;
             position: relative;
             -webkit-font-smoothing: antialiased;
@@ -550,7 +550,7 @@
     <div class="container">
         <div class="header">
             <h1>
-                <span class="char">Ç</span><span class="char">e</span><span class="char">y</span><span class="char">r</span><span class="char">e</span><span class="char">k</span><span class="char"> </span><span class="char">A</span><span class="char">l</span><span class="char">t</span><span class="char">ı</span><span class="char">n</span>
+                <span class="char">Ç</span><span class="char">e</span><span class="char">y</span><span class="char">r</span><span class="char">e</span><span class="char">k</span><span class="char">&nbsp;&nbsp;</span><span class="char">A</span><span class="char">l</span><span class="char">t</span><span class="char">ı</span><span class="char">n</span>
             </h1>
         </div>
 
@@ -609,8 +609,8 @@
     <script>
         // Supabase Konfiguration
         const SUPABASE_CONFIG = {
-            url: 'https://uskcpyrzuhdfyzizarrb.supabase.co', // Ersetzen Sie das!
-            anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVza2NweXJ6dWhkZnl6aXphcnJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzOTUyNTEsImV4cCI6MjA2NDk3MTI1MX0.498zhysKXGY9eEz5p625ZvzQt81xEOq1KyUey6P-_pY'  // Ersetzen Sie das!
+            url: 'IHRE_SUPABASE_URL', // Ersetzen Sie das!
+            anonKey: 'IHRE_ANON_KEY'  // Ersetzen Sie das!
         };
 
         let chart = null;
@@ -674,7 +674,7 @@
 
             document.getElementById('priceCards').innerHTML = `
                 <div class="price-card">
-                    <h3>Verkaufspreis EUR</h3>
+                    <h3>Verkaufspreis</h3>
                     <div class="price-value">${formatPrice(current.sell_price_eur)}</div>
                     <div class="price-currency">Euro</div>
                     <div class="price-change ${getChangeClass(sellChangeEUR)}">
@@ -683,7 +683,7 @@
                 </div>
 
                 <div class="price-card">
-                    <h3>Verkaufspreis TL</h3>
+                    <h3>Verkaufspreis</h3>
                     <div class="price-value">${formatPrice(current.sell_price_tl)}</div>
                     <div class="price-currency">Türk Lirası</div>
                     <div class="price-change ${getChangeClass(sellChangeTL)}">
