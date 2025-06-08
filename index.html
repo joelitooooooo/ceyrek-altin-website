@@ -722,58 +722,32 @@
             console.log('Price cards updated with newest values');
         }
 
-        // Chart-Daten laden - KORRIGIERTE Supabase Filter-Syntax
+        // Chart-Daten laden - KOMPLETT VEREINFACHT ohne Filter
         async function loadChartData(period) {
             try {
                 console.log(`Loading chart data for period: ${period}`);
                 
-                let queryParams = {
+                // EINFACH: Lade alle verfügbaren Daten ohne komplexe Filter
+                const queryParams = {
                     'select': 'date,sell_price_tl,sell_price_eur',
-                    'order': 'date.desc'  // Neueste zuerst für bessere Performance
+                    'order': 'date.desc',
+                    'limit': '1000'  // Maximal 1000 Einträge
                 };
-
-                // Einfacher Ansatz: Lade die letzten X Einträge basierend auf Zeitraum
-                let limit;
-                switch(period) {
-                    case '1D':
-                        limit = 50;   // Letzte 50 Einträge für 1 Tag
-                        break;
-                    case '7D':
-                        limit = 200;  // Letzte 200 Einträge für 7 Tage
-                        break;
-                    case '1M':
-                        limit = 500;  // Letzte 500 Einträge für 1 Monat
-                        break;
-                    case '3M':
-                        limit = 1000; // Letzte 1000 Einträge für 3 Monate
-                        break;
-                    case '1Y':
-                        limit = 2000; // Letzte 2000 Einträge für 1 Jahr
-                        break;
-                    default:
-                        limit = 100;
-                }
-
-                queryParams['limit'] = limit.toString();
                 
-                console.log(`Querying last ${limit} entries for ${period}`);
+                console.log('Loading all available data...');
 
                 const data = await fetchFromSupabase('gold_prices', queryParams);
                 
-                console.log(`Received ${data.length} data points for ${period}`);
+                console.log(`Received ${data.length} total data points`);
 
                 if (data.length === 0) {
-                    console.warn(`No data available - trying to get any available data`);
-                    // Fallback: Lade einfach die letzten 50 verfügbaren Einträge
-                    const fallbackData = await fetchFromSupabase('gold_prices', {
-                        'select': 'date,sell_price_tl,sell_price_eur',
-                        'order': 'date.desc',
-                        'limit': '50'
-                    });
-                    
-                    goldData = fallbackData.reverse(); // Chronologisch sortieren
+                    console.warn('No data available in database');
+                    goldData = [];
                 } else {
-                    // Filtere die Daten nach Zeitraum (clientseitig)
+                    // Sortiere chronologisch (älteste zuerst für Chart)
+                    const sortedData = data.reverse();
+                    
+                    // Clientseitige Filterung nach Zeitraum
                     const now = new Date();
                     let startDate;
                     
@@ -794,19 +768,32 @@
                             startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
                             break;
                         default:
-                            startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+                            // Zeige alle Daten wenn Zeitraum unbekannt
+                            goldData = sortedData;
+                            updateChart();
+                            updateStatistics();
+                            return;
                     }
                     
-                    // Clientseitige Filterung
-                    const filteredData = data.filter(item => {
-                        const itemDate = new Date(item.date);
-                        return itemDate >= startDate;
+                    // Filtere die Daten nach Zeitraum
+                    const filteredData = sortedData.filter(item => {
+                        try {
+                            const itemDate = new Date(item.date);
+                            return itemDate >= startDate;
+                        } catch (e) {
+                            console.warn('Invalid date format:', item.date);
+                            return true; // Behalte Einträge mit ungültigen Daten
+                        }
                     });
                     
-                    // Chronologisch sortieren (älteste zuerst für Chart)
-                    goldData = filteredData.reverse();
-                    
+                    goldData = filteredData;
                     console.log(`Filtered to ${goldData.length} entries for period ${period}`);
+                    
+                    // Falls keine Daten für den Zeitraum, zeige die letzten 10 Einträge
+                    if (goldData.length === 0) {
+                        goldData = sortedData.slice(-10);
+                        console.log(`No data for period, showing last ${goldData.length} entries`);
+                    }
                 }
 
                 updateChart();
@@ -815,12 +802,30 @@
             } catch (error) {
                 console.error('Fehler beim Laden der Chart-Daten:', error);
                 
+                // Versuche absolut einfachste Abfrage als letzter Fallback
+                try {
+                    console.log('Trying absolute fallback...');
+                    const fallbackData = await fetchFromSupabase('gold_prices', {
+                        'select': 'date,sell_price_tl,sell_price_eur',
+                        'limit': '50'
+                    });
+                    
+                    goldData = fallbackData;
+                    console.log(`Fallback successful: ${goldData.length} entries`);
+                    updateChart();
+                    updateStatistics();
+                    return;
+                    
+                } catch (fallbackError) {
+                    console.error('Even fallback failed:', fallbackError);
+                }
+                
                 // Zeige Fehlermeldung im Chart
                 const chartContainer = document.querySelector('.chart-container');
                 chartContainer.innerHTML = `
                     <div class="error-message" style="margin: 50px 0; text-align: center;">
                         <h3 style="margin-bottom: 15px;">⚠️ Fehler beim Laden der Daten</h3>
-                        <p>${error.message}</p>
+                        <p>Datenbankfehler: ${error.message}</p>
                         <button onclick="loadChartData('${currentPeriod}')" 
                                 style="margin-top: 15px; padding: 10px 20px; background: linear-gradient(135deg, #8F87F1, #C68EFD); 
                                        color: white; border: none; border-radius: 15px; cursor: pointer;">
