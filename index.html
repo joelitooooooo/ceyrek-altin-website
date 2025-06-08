@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Çeyrek Altın</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+            background: linear-gradient(135deg, #8F87F1 0%, #C68EFD 35%, #E9A5F1 70%, #FED2E2 100%);
+            min-height: 100vh;
+            color: #1a1a1a;
+            line-height: 1.5;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(143, 135, 241, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(198, 142, 253, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(233, 165, 241, 0.3) 0%, transparent 50%);
+            z-index: -1;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(143, 135, 241, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(198, 142, 253, 0.5); }
+        }
+
+        @keyframes slideIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(30px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 60px 20px;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 80px;
+            animation: slideIn 0.8s ease-out;
+        }
+
+        .header h1 {
+            font-size: 6rem;
+            font-weight: 900;
+            margin-bottom: 60px;
+            letter-spacing: -0.05em;
+            line-height: 0.9;
+            position: relative;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+            font-feature-settings: "kern" 1, "liga" 1;
+        }
+
+        .header h1 .char {
+            display: inline-block;
+        }
+
+        .header h1 .char:nth-child(1) { color: #007AFF; } /* Ç - Blau */
+        .header h1 .char:nth-child(2) { color: #34C759; } /* e - Grün */
+        .header h1 .char:nth-child(3) { color: #FFCC00; } /* y - Gelb */
+        .header h1 .char:nth-child(4) { color: #FF9500; } /* r - Orange */
+        .header h1 .char:nth-child(5) { color: #FF2D92; } /* e - Pink */
+        .header h1 .char:nth-child(6) { color: #5856D6; } /* k - Lila */
+        .header h1 .char:nth-child(7) { color: #007AFF; } /* (space) */
+        .header h1 .char:nth-child(8) { color: #34C759; } /* A - Grün */
+        .header h1 .char:nth-child(9) { color: #FFCC00; } /* l - Gelb */
+        .header h1 .char:nth-child(10) { color: #FF9500; } /* t - Orange */
+        .header h1 .char:nth-child(11) { color: #FF2D92; } /* ı - Pink */
+        .header h1 .char:nth-child(12) { color: #5856D6; } /* n - Lila */
+
+        .header h1::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 6px;
+            background: linear-gradient(90deg, #007AFF, #34C759, #FFCC00, #FF9500, #FF2D92, #5856D6);
+            border-radius: 3px;
+            animation: glow 2s ease-in-out infinite alternate;
+            box-shadow: 0 0 20px rgba(0, 122, 255, 0.4);
+        }
+
+        .price-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 40px;
+            margin-bottom: 80px;
+        }
+
+        .price-card {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(30px);
+            border-radius: 28px;
+            padding: 50px 35px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            animation: slideIn 0.8s ease-out;
+        }
+
+        .price-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #8F87F1, #C68EFD, #E9A5F1, #FED2E2);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .price-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 
+                0 25px 60px rgba(143, 135, 241, 0.3),
+                0 10px 30px rgba(198, 142, 253, 0.2);
+            background: rgba(255, 255, 255, 0.35);
+        }
+
+        .price-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .price-card:nth-child(1) { animation-delay: 0.1s; }
+        .price-card:nth-child(2) { animation-delay: 0.2s; }
+        .price-card:nth-child(3) { animation-delay: 0.3s; }
+        .price-card:nth-child(4) { animation-delay: 0.4s; }
+
+        .price-card h3 {
+            font-size: 1rem;
+            color: rgba(26, 26, 26, 0.6);
+            font-weight: 600;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .price-card h3::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #8F87F1, #C68EFD);
+        }
+
+        .price-value {
+            font-size: 3.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #1a1a1a, #333);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+        }
+
+        .price-currency {
+            font-size: 1.1rem;
+            color: rgba(26, 26, 26, 0.5);
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        .price-change {
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 12px 20px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .price-change.positive {
+            background: linear-gradient(135deg, rgba(52, 199, 89, 0.15), rgba(52, 199, 89, 0.25));
+            color: #22c55e;
+            border: 1px solid rgba(52, 199, 89, 0.3);
+        }
+
+        .price-change.negative {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.25));
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .price-change.neutral {
+            background: linear-gradient(135deg, rgba(107, 114, 128, 0.15), rgba(107, 114, 128, 0.25));
+            color: #6b7280;
+            border: 1px solid rgba(107, 114, 128, 0.3);
+        }
+
+        .price-change::before {
+            content: '';
+            width: 0;
+            height: 0;
+            border-style: solid;
+        }
+
+        .price-change.positive::before {
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-bottom: 8px solid currentColor;
+        }
+
+        .price-change.negative::before {
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 8px solid currentColor;
+        }
+
+        .price-change.neutral::before {
+            width: 8px;
+            height: 2px;
+            background: currentColor;
+            border: none;
+        }
+
+        .chart-section {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(30px);
+            border-radius: 32px;
+            padding: 60px 50px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            margin-bottom: 50px;
+            position: relative;
+            overflow: hidden;
+            animation: slideIn 1s ease-out 0.3s both;
+        }
+
+        .chart-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #8F87F1, #C68EFD, #E9A5F1, #FED2E2);
+        }
+
+        .chart-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .chart-header h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #8F87F1, #C68EFD);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .chart-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .chart-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            padding: 14px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: rgba(26, 26, 26, 0.7);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-family: inherit;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .chart-btn:hover::before {
+            left: 100%;
+        }
+
+        .chart-btn.active {
+            background: linear-gradient(135deg, #8F87F1, #C68EFD);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 8px 25px rgba(143, 135, 241, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .chart-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.35);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .currency-toggle {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 8px;
+            backdrop-filter: blur(10px);
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .currency-btn {
+            background: transparent;
+            border: none;
+            border-radius: 15px;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: rgba(26, 26, 26, 0.6);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .currency-btn.active {
+            background: linear-gradient(135deg, #E9A5F1, #FED2E2);
+            color: #1a1a1a;
+            box-shadow: 0 4px 15px rgba(233, 165, 241, 0.3);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 450px;
+            margin: 30px 0;
+            border-radius: 20px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 80px;
+            color: rgba(26, 26, 26, 0.6);
+            font-size: 1.2rem;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(143, 135, 241, 0.2);
+            border-top: 4px solid #8F87F1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 25px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.25));
+            color: #dc2626;
+            padding: 25px;
+            border-radius: 20px;
+            text-align: center;
+            margin: 25px 0;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .last-update {
+            text-align: center;
+            color: rgba(26, 26, 26, 0.5);
+            font-size: 1rem;
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            animation: slideIn 1.2s ease-out 0.5s both;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: rgba(26, 26, 26, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 40px 15px;
+            }
+            
+            .header h1 {
+                font-size: 4rem;
+                margin-bottom: 40px;
+            }
+            
+            .header h1::after {
+                width: 150px;
+                height: 4px;
+                bottom: -10px;
+            }
+            
+            .price-cards {
+                grid-template-columns: 1fr;
+                gap: 25px;
+                margin-bottom: 50px;
+            }
+            
+            .price-card {
+                padding: 35px 25px;
+            }
+            
+            .price-value {
+                font-size: 2.5rem;
+            }
+            
+            .chart-section {
+                padding: 30px 20px;
+                border-radius: 20px;
+            }
+            
+            .chart-header h2 {
+                font-size: 2rem;
+            }
+            
+            .chart-container {
+                height: 300px;
+                padding: 15px;
+            }
+            
+            .chart-controls {
+                gap: 10px;
+            }
+            
+            .chart-btn {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 3.2rem;
+                margin-bottom: 30px;
+            }
+            
+            .header h1::after {
+                width: 120px;
+                height: 3px;
+                bottom: -8px;
+            }
+            
+            .chart-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .currency-toggle {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                <span class="char">Ç</span><span class="char">e</span><span class="char">y</span><span class="char">r</span><span class="char">e</span><span class="char">k</span><span class="char"> </span><span class="char">A</span><span class="char">l</span><span class="char">t</span><span class="char">ı</span><span class="char">n</span>
+            </h1>
+        </div>
+
+        <div class="price-cards" id="priceCards">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                Lade aktuelle Goldpreise...
+            </div>
+        </div>
+
+        <div class="chart-section">
+            <div class="chart-header">
+                <h2>Preisverlauf</h2>
+            </div>
+
+            <div class="chart-controls">
+                <button class="chart-btn active" data-period="1D">24 Stunden</button>
+                <button class="chart-btn" data-period="7D">7 Tage</button>
+                <button class="chart-btn" data-period="1M">1 Monat</button>
+                <button class="chart-btn" data-period="3M">3 Monate</button>
+                <button class="chart-btn" data-period="1Y">1 Jahr</button>
+            </div>
+
+            <div class="currency-toggle">
+                <button class="currency-btn active" data-currency="EUR">Euro</button>
+                <button class="currency-btn" data-currency="TL">Türk Lirası</button>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="priceChart"></canvas>
+            </div>
+
+            <div class="stats-grid" id="statsGrid" style="display: none;">
+                <div class="stat-item">
+                    <div class="stat-value" id="avgPrice">-</div>
+                    <div class="stat-label">Durchschnittspreis</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="maxPrice">-</div>
+                    <div class="stat-label">Höchstpreis</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="minPrice">-</div>
+                    <div class="stat-label">Tiefstpreis</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="volatility">-</div>
+                    <div class="stat-label">Volatilität</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="last-update" id="lastUpdate"></div>
+    </div>
+
+    <script>
+        // Supabase Konfiguration
+        const SUPABASE_CONFIG = {
+            url: 'https://uskcpyrzuhdfyzizarrb.supabase.co', // Ersetzen Sie das!
+            anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVza2NweXJ6dWhkZnl6aXphcnJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzOTUyNTEsImV4cCI6MjA2NDk3MTI1MX0.498zhysKXGY9eEz5p625ZvzQt81xEOq1KyUey6P-_pY'  // Ersetzen Sie das!
+        };
+
+        let chart = null;
+        let currentPeriod = '1D';
+        let currentCurrency = 'EUR';
+        let goldData = [];
+
+        // Supabase API Call
+        async function fetchFromSupabase(endpoint, params = {}) {
+            const url = new URL(`${SUPABASE_CONFIG.url}/rest/v1/${endpoint}`);
+            Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+
+            const response = await fetch(url, {
+                headers: {
+                    'apikey': SUPABASE_CONFIG.anonKey,
+                    'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Supabase Error: ${response.status}`);
+            }
+
+            return response.json();
+        }
+
+        // Aktuelle Preise laden
+        async function loadCurrentPrices() {
+            try {
+                const data = await fetchFromSupabase('gold_prices', {
+                    'select': '*',
+                    'order': 'created_at.desc',
+                    'limit': '10'
+                });
+
+                if (data.length === 0) {
+                    throw new Error('Keine Daten verfügbar');
+                }
+
+                const current = data[0];
+                const previous = data[1] || current;
+
+                displayPriceCards(current, previous);
+                updateLastUpdate(current.created_at);
+
+            } catch (error) {
+                console.error('Fehler beim Laden der Preise:', error);
+                document.getElementById('priceCards').innerHTML = `
+                    <div class="error-message">
+                        ⚠️ Fehler beim Laden der Goldpreise: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Price Cards anzeigen
+        function displayPriceCards(current, previous) {
+            const buyChangeTL = calculateChange(current.buy_price_tl, previous.buy_price_tl);
+            const sellChangeTL = calculateChange(current.sell_price_tl, previous.sell_price_tl);
+            const buyChangeEUR = calculateChange(current.buy_price_eur, previous.buy_price_eur);
+            const sellChangeEUR = calculateChange(current.sell_price_eur, previous.sell_price_eur);
+
+            document.getElementById('priceCards').innerHTML = `
+                <div class="price-card">
+                    <h3>Kaufpreis EUR</h3>
+                    <div class="price-value">${formatPrice(current.buy_price_eur)}</div>
+                    <div class="price-currency">Euro</div>
+                    <div class="price-change ${getChangeClass(buyChangeEUR)}">
+                        ${formatChange(buyChangeEUR)}
+                    </div>
+                </div>
+
+                <div class="price-card">
+                    <h3>Verkaufspreis EUR</h3>
+                    <div class="price-value">${formatPrice(current.sell_price_eur)}</div>
+                    <div class="price-currency">Euro</div>
+                    <div class="price-change ${getChangeClass(sellChangeEUR)}">
+                        ${formatChange(sellChangeEUR)}
+                    </div>
+                </div>
+
+                <div class="price-card">
+                    <h3>Kaufpreis TL</h3>
+                    <div class="price-value">${formatPrice(current.buy_price_tl)}</div>
+                    <div class="price-currency">Türk Lirası</div>
+                    <div class="price-change ${getChangeClass(buyChangeTL)}">
+                        ${formatChange(buyChangeTL)}
+                    </div>
+                </div>
+
+                <div class="price-card">
+                    <h3>Verkaufspreis TL</h3>
+                    <div class="price-value">${formatPrice(current.sell_price_tl)}</div>
+                    <div class="price-currency">Türk Lirası</div>
+                    <div class="price-change ${getChangeClass(sellChangeTL)}">
+                        ${formatChange(sellChangeTL)}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Chart-Daten laden
+        async function loadChartData(period) {
+            try {
+                const days = getDaysFromPeriod(period);
+                const data = await fetchFromSupabase('gold_prices', {
+                    'select': 'created_at,buy_price_tl,sell_price_tl,buy_price_eur,sell_price_eur',
+                    'order': 'created_at.asc',
+                    'gte': `created_at.${getDateFromDays(days)}`
+                });
+
+                goldData = data;
+                updateChart();
+                updateStatistics();
+
+            } catch (error) {
+                console.error('Fehler beim Laden der Chart-Daten:', error);
+            }
+        }
+
+        // Chart aktualisieren
+        function updateChart() {
+            const ctx = document.getElementById('priceChart').getContext('2d');
+
+            if (chart) {
+                chart.destroy();
+            }
+
+            const labels = goldData.map(item => 
+                new Date(item.created_at).toLocaleDateString('de-DE', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: currentPeriod === '1D' ? '2-digit' : undefined,
+                    minute: currentPeriod === '1D' ? '2-digit' : undefined
+                })
+            );
+
+            const buyKey = currentCurrency === 'EUR' ? 'buy_price_eur' : 'buy_price_tl';
+            const sellKey = currentCurrency === 'EUR' ? 'sell_price_eur' : 'sell_price_tl';
+
+            const buyData = goldData.map(item => item[buyKey]);
+            const sellData = goldData.map(item => item[sellKey]);
+
+            // Gradient erstellen
+            const gradientBuy = ctx.createLinearGradient(0, 0, 0, 400);
+            gradientBuy.addColorStop(0, 'rgba(143, 135, 241, 0.8)');
+            gradientBuy.addColorStop(1, 'rgba(198, 142, 253, 0.1)');
+
+            const gradientSell = ctx.createLinearGradient(0, 0, 0, 400);
+            gradientSell.addColorStop(0, 'rgba(233, 165, 241, 0.8)');
+            gradientSell.addColorStop(1, 'rgba(254, 210, 226, 0.1)');
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: `Kaufpreis (${currentCurrency})`,
+                            data: buyData,
+                            borderColor: '#8F87F1',
+                            backgroundColor: gradientBuy,
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#8F87F1',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: `Verkaufspreis (${currentCurrency})`,
+                            data: sellData,
+                            borderColor: '#E9A5F1',
+                            backgroundColor: gradientSell,
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#E9A5F1',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                                    size: 14,
+                                    weight: '600'
+                                },
+                                color: 'rgba(26, 26, 26, 0.8)',
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                            titleColor: '#1a1a1a',
+                            bodyColor: '#1a1a1a',
+                            borderColor: 'rgba(143, 135, 241, 0.3)',
+                            borderWidth: 1,
+                            cornerRadius: 12,
+                            displayColors: true,
+                            padding: 12
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.2)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: 'rgba(26, 26, 26, 0.6)',
+                                font: {
+                                    family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                                    size: 12
+                                },
+                                padding: 10
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.2)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: 'rgba(26, 26, 26, 0.6)',
+                                font: {
+                                    family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                                    size: 12
+                                },
+                                padding: 10,
+                                maxTicksLimit: 8
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Statistiken aktualisieren
+        function updateStatistics() {
+            if (goldData.length === 0) return;
+
+            const buyKey = currentCurrency === 'EUR' ? 'buy_price_eur' : 'buy_price_tl';
+            const prices = goldData.map(item => item[buyKey]);
+            
+            const avg = prices.reduce((a, b) => a + b, 0) / prices.length;
+            const max = Math.max(...prices);
+            const min = Math.min(...prices);
+            const volatility = ((max - min) / avg * 100);
+
+            document.getElementById('avgPrice').textContent = formatPrice(avg);
+            document.getElementById('maxPrice').textContent = formatPrice(max);
+            document.getElementById('minPrice').textContent = formatPrice(min);
+            document.getElementById('volatility').textContent = `${volatility.toFixed(2)}%`;
+            
+            document.getElementById('statsGrid').style.display = 'grid';
+        }
+
+        // Helper Functions
+        function formatPrice(price) {
+            return new Intl.NumberFormat('de-DE', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(price);
+        }
+
+        function calculateChange(current, previous) {
+            return ((current - previous) / previous) * 100;
+        }
+
+        function formatChange(change) {
+            const sign = change > 0 ? '+' : '';
+            return `${sign}${change.toFixed(2)}%`;
+        }
+
+        function getChangeClass(change) {
+            if (change > 0) return 'positive';
+            if (change < 0) return 'negative';
+            return 'neutral';
+        }
+
+        function getDaysFromPeriod(period) {
+            const periods = {
+                '1D': 1,
+                '7D': 7,
+                '1M': 30,
+                '3M': 90,
+                '1Y': 365
+            };
+            return periods[period] || 1;
+        }
+
+        function getDateFromDays(days) {
+            const date = new Date();
+            date.setDate(date.getDate() - days);
+            return date.toISOString();
+        }
+
+        function updateLastUpdate(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diffMinutes = Math.floor((now - date) / (1000 * 60));
+            
+            let timeAgo;
+            if (diffMinutes < 1) {
+                timeAgo = 'gerade eben';
+            } else if (diffMinutes < 60) {
+                timeAgo = `vor ${diffMinutes} Minute${diffMinutes > 1 ? 'n' : ''}`;
+            } else if (diffMinutes < 1440) {
+                const hours = Math.floor(diffMinutes / 60);
+                timeAgo = `vor ${hours} Stunde${hours > 1 ? 'n' : ''}`;
+            } else {
+                timeAgo = date.toLocaleDateString('de-DE');
+            }
+            
+            document.getElementById('lastUpdate').innerHTML = `
+                <strong>Letzte Aktualisierung:</strong> ${date.toLocaleString('de-DE')} 
+                <span style="color: rgba(26, 26, 26, 0.4);">(${timeAgo})</span>
+            `;
+        }
+
+        // Event Listeners
+        document.querySelectorAll('.chart-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentPeriod = btn.dataset.period;
+                loadChartData(currentPeriod);
+            });
+        });
+
+        document.querySelectorAll('.currency-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.currency-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentCurrency = btn.dataset.currency;
+                if (goldData.length > 0) {
+                    updateChart();
+                    updateStatistics();
+                }
+            });
+        });
+
+        // Touch/Swipe Support für Mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+            
+            if (Math.abs(diff) > swipeThreshold) {
+                const periods = ['1D', '7D', '1M', '3M', '1Y'];
+                const currentIndex = periods.indexOf(currentPeriod);
+                
+                if (diff > 0 && currentIndex < periods.length - 1) {
+                    // Swipe left - next period
+                    const nextPeriod = periods[currentIndex + 1];
+                    document.querySelector(`[data-period="${nextPeriod}"]`).click();
+                } else if (diff < 0 && currentIndex > 0) {
+                    // Swipe right - previous period
+                    const prevPeriod = periods[currentIndex - 1];
+                    document.querySelector(`[data-period="${prevPeriod}"]`).click();
+                }
+            }
+        }
+
+        // Keyboard Navigation
+        document.addEventListener('keydown', (e) => {
+            const periods = ['1D', '7D', '1M', '3M', '1Y'];
+            const currentIndex = periods.indexOf(currentPeriod);
+            
+            if (e.key === 'ArrowLeft' && currentIndex > 0) {
+                document.querySelector(`[data-period="${periods[currentIndex - 1]}"]`).click();
+            } else if (e.key === 'ArrowRight' && currentIndex < periods.length - 1) {
+                document.querySelector(`[data-period="${periods[currentIndex + 1]}"]`).click();
+            } else if (e.key === ' ') {
+                e.preventDefault();
+                // Spacebar toggles currency
+                const currencies = ['TL', 'EUR'];
+                const nextCurrency = currencies.find(c => c !== currentCurrency);
+                document.querySelector(`[data-currency="${nextCurrency}"]`).click();
+            }
+        });
+
+        // Performance Monitoring
+        function logPerformance(action, startTime) {
+            const endTime = performance.now();
+            const duration = endTime - startTime;
+            console.log(`${action} took ${duration.toFixed(2)}ms`);
+        }
+
+        // Initial Load mit Performance Tracking
+        document.addEventListener('DOMContentLoaded', () => {
+            const startTime = performance.now();
+            
+            Promise.all([
+                loadCurrentPrices(),
+                loadChartData(currentPeriod)
+            ]).then(() => {
+                logPerformance('Initial load', startTime);
+            }).catch(error => {
+                console.error('Initialization error:', error);
+            });
+        });
+
+        // Auto-refresh mit Smart Timing
+        let refreshInterval;
+        
+        function startAutoRefresh() {
+            // Refresh every 2 minutes during market hours, 10 minutes otherwise
+            const now = new Date();
+            const hour = now.getHours();
+            const isMarketHours = hour >= 9 && hour <= 17; // 9 AM to 5 PM
+            const interval = isMarketHours ? 2 * 60 * 1000 : 10 * 60 * 1000;
+            
+            refreshInterval = setInterval(() => {
+                const refreshStart = performance.now();
+                Promise.all([
+                    loadCurrentPrices(),
+                    loadChartData(currentPeriod)
+                ]).then(() => {
+                    logPerformance('Auto refresh', refreshStart);
+                });
+            }, interval);
+        }
+
+        // Visibility API für Pause bei inaktivem Tab
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                clearInterval(refreshInterval);
+            } else {
+                startAutoRefresh();
+                // Immediate refresh when tab becomes active
+                loadCurrentPrices();
+                loadChartData(currentPeriod);
+            }
+        });
+
+        // Start auto-refresh
+        startAutoRefresh();
+
+        // Error Handling für Network Issues
+        window.addEventListener('online', () => {
+            console.log('Network connection restored');
+            loadCurrentPrices();
+            loadChartData(currentPeriod);
+        });
+
+        window.addEventListener('offline', () => {
+            console.log('Network connection lost');
+            document.getElementById('lastUpdate').innerHTML += 
+                '<br><span style="color: #ef4444;">⚠️ Keine Internetverbindung</span>';
+        });
+    </script>
+</body>
+</html>
