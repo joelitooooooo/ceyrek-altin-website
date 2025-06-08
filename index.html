@@ -665,35 +665,28 @@
             }
         }
 
-        // Price Cards anzeigen - nur Verkaufspreise
+        // Price Cards anzeigen - nur aktuelle Verkaufspreise ohne Veränderung
         function displayPriceCards(current, previous) {
-            const sellChangeTL = calculateChange(current.sell_price_tl, previous.sell_price_tl);
-            const sellChangeEUR = calculateChange(current.sell_price_eur, previous.sell_price_eur);
-
             document.getElementById('priceCards').innerHTML = `
                 <div class="price-card">
                     <h3>Verkaufspreis</h3>
                     <div class="price-value">${formatPrice(current.sell_price_eur)}</div>
                     <div class="price-currency">Euro</div>
-                    <div class="price-change ${getChangeClass(sellChangeEUR)}">
-                        ${formatChange(sellChangeEUR)}
-                    </div>
                 </div>
 
                 <div class="price-card">
                     <h3>Verkaufspreis</h3>
                     <div class="price-value">${formatPrice(current.sell_price_tl)}</div>
                     <div class="price-currency">Türk Lirası</div>
-                    <div class="price-change ${getChangeClass(sellChangeTL)}">
-                        ${formatChange(sellChangeTL)}
-                    </div>
                 </div>
             `;
         }
 
-        // Chart-Daten laden mit verbesserter Zeitraum-Behandlung
+        // Chart-Daten laden mit robuster Fehlerbehandlung
         async function loadChartData(period) {
             try {
+                console.log(`Loading chart data for period: ${period}`);
+                
                 let queryParams = {
                     'select': 'created_at,sell_price_tl,sell_price_eur',
                     'order': 'created_at.asc'
@@ -723,35 +716,82 @@
                         startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
                 }
 
-                queryParams['gte'] = `created_at.${startDate.toISOString()}`;
+                // Formatiere das Startdatum korrekt für Supabase
+                const startDateString = startDate.toISOString().slice(0, 19);
+                queryParams['gte'] = `created_at.${startDateString}`;
+                
+                console.log(`Querying data from: ${startDateString}`);
 
                 const data = await fetchFromSupabase('gold_prices', queryParams);
+                
+                console.log(`Received ${data.length} data points for ${period}`);
 
-                goldData = data;
+                if (data.length === 0) {
+                    console.warn(`No data available for period ${period}`);
+                    // Versuche Fallback mit allen verfügbaren Daten
+                    const fallbackData = await fetchFromSupabase('gold_prices', {
+                        'select': 'created_at,sell_price_tl,sell_price_eur',
+                        'order': 'created_at.desc',
+                        'limit': '100'
+                    });
+                    
+                    if (fallbackData.length > 0) {
+                        // Umkehren für chronologische Reihenfolge
+                        goldData = fallbackData.reverse();
+                        console.log(`Using fallback data: ${goldData.length} points`);
+                    } else {
+                        goldData = [];
+                    }
+                } else {
+                    goldData = data;
+                }
+
                 updateChart();
                 updateStatistics();
 
             } catch (error) {
                 console.error('Fehler beim Laden der Chart-Daten:', error);
-                // Zeige einen Fehler im Chart-Bereich
-                const chartCanvas = document.getElementById('priceChart');
-                const ctx = chartCanvas.getContext('2d');
-                if (chart) chart.destroy();
                 
-                // Einfache Fehlernachricht im Canvas
-                ctx.fillStyle = 'rgba(239, 68, 68, 0.7)';
-                ctx.font = '16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('Fehler beim Laden der Daten', chartCanvas.width / 2, chartCanvas.height / 2);
+                // Zeige Fehlermeldung im Chart
+                const chartContainer = document.querySelector('.chart-container');
+                chartContainer.innerHTML = `
+                    <div class="error-message" style="margin: 50px 0; text-align: center;">
+                        <h3 style="margin-bottom: 15px;">⚠️ Fehler beim Laden der Daten</h3>
+                        <p>${error.message}</p>
+                        <button onclick="loadChartData('${currentPeriod}')" 
+                                style="margin-top: 15px; padding: 10px 20px; background: linear-gradient(135deg, #8F87F1, #C68EFD); 
+                                       color: white; border: none; border-radius: 15px; cursor: pointer;">
+                            Erneut versuchen
+                        </button>
+                    </div>
+                    <canvas id="priceChart" style="display: none;"></canvas>
+                `;
+                
+                goldData = [];
+                document.getElementById('statsGrid').style.display = 'none';
             }
         }
 
-        // Chart aktualisieren mit verbesserter Zeitachse
+        // Chart aktualisieren mit robuster Fehlerbehandlung
         function updateChart() {
-            const ctx = document.getElementById('priceChart').getContext('2d');
+            // Canvas-Element wiederherstellen falls es durch Fehlermeldung ersetzt wurde
+            let chartContainer = document.querySelector('.chart-container');
+            if (!document.getElementById('priceChart')) {
+                chartContainer.innerHTML = '<canvas id="priceChart"></canvas>';
+            }
+            
+            const chartCanvas = document.getElementById('priceChart');
+            if (!chartCanvas) {
+                console.error('Chart canvas not found');
+                return;
+            }
+            
+            chartCanvas.style.display = 'block';
+            const ctx = chartCanvas.getContext('2d');
 
             if (chart) {
                 chart.destroy();
+                chart = null;
             }
 
             if (goldData.length === 0) {
@@ -795,7 +835,7 @@
             });
 
             const sellKey = currentCurrency === 'EUR' ? 'sell_price_eur' : 'sell_price_tl';
-            const sellData = goldData.map(item => item[sellKey]);
+            const sellData = goldData.map(item => parseFloat(item[sellKey]) || 0);
 
             // Gradient erstellen
             const gradientSell = ctx.createLinearGradient(0, 0, 0, 400);
@@ -808,110 +848,121 @@
                              currentPeriod === '1M' ? 10 : 
                              currentPeriod === '3M' ? 12 : 8;
 
-            chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: `Verkaufspreis (${currentCurrency})`,
-                            data: sellData,
-                            borderColor: '#E9A5F1',
-                            backgroundColor: gradientSell,
-                            borderWidth: 4,
-                            fill: true,
-                            tension: 0.4,
-                            pointBackgroundColor: '#E9A5F1',
-                            pointBorderColor: '#ffffff',
-                            pointBorderWidth: 3,
-                            pointRadius: currentPeriod === '1D' ? 4 : 3,
-                            pointHoverRadius: 8
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        intersect: false,
-                        mode: 'index'
-                    },
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                font: {
-                                    family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                                    size: 14,
-                                    weight: '600'
-                                },
-                                color: 'rgba(26, 26, 26, 0.8)',
-                                usePointStyle: true,
-                                pointStyle: 'circle',
-                                padding: 20
+            try {
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: `Verkaufspreis (${currentCurrency})`,
+                                data: sellData,
+                                borderColor: '#E9A5F1',
+                                backgroundColor: gradientSell,
+                                borderWidth: 4,
+                                fill: true,
+                                tension: 0.4,
+                                pointBackgroundColor: '#E9A5F1',
+                                pointBorderColor: '#ffffff',
+                                pointBorderWidth: 3,
+                                pointRadius: currentPeriod === '1D' ? 4 : 3,
+                                pointHoverRadius: 8
                             }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            intersect: false,
+                            mode: 'index'
                         },
-                        tooltip: {
-                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                            titleColor: '#1a1a1a',
-                            bodyColor: '#1a1a1a',
-                            borderColor: 'rgba(143, 135, 241, 0.3)',
-                            borderWidth: 1,
-                            cornerRadius: 12,
-                            displayColors: true,
-                            padding: 12,
-                            callbacks: {
-                                title: function(context) {
-                                    const dataIndex = context[0].dataIndex;
-                                    const originalDate = new Date(goldData[dataIndex].created_at);
-                                    return originalDate.toLocaleString('de-DE');
-                                },
-                                label: function(context) {
-                                    const value = formatPrice(context.parsed.y);
-                                    const currency = currentCurrency === 'EUR' ? '€' : '₺';
-                                    return `Verkaufspreis: ${value} ${currency}`;
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    font: {
+                                        family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                                        size: 14,
+                                        weight: '600'
+                                    },
+                                    color: 'rgba(26, 26, 26, 0.8)',
+                                    usePointStyle: true,
+                                    pointStyle: 'circle',
+                                    padding: 20
                                 }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: false,
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.2)',
-                                drawBorder: false
                             },
-                            ticks: {
-                                color: 'rgba(26, 26, 26, 0.6)',
-                                font: {
-                                    family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                                    size: 12
-                                },
-                                padding: 10,
-                                callback: function(value) {
-                                    const currency = currentCurrency === 'EUR' ? '€' : '₺';
-                                    return formatPrice(value) + ' ' + currency;
+                            tooltip: {
+                                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                titleColor: '#1a1a1a',
+                                bodyColor: '#1a1a1a',
+                                borderColor: 'rgba(143, 135, 241, 0.3)',
+                                borderWidth: 1,
+                                cornerRadius: 12,
+                                displayColors: true,
+                                padding: 12,
+                                callbacks: {
+                                    title: function(context) {
+                                        const dataIndex = context[0].dataIndex;
+                                        const originalDate = new Date(goldData[dataIndex].created_at);
+                                        return originalDate.toLocaleString('de-DE');
+                                    },
+                                    label: function(context) {
+                                        const value = formatPrice(context.parsed.y);
+                                        const currency = currentCurrency === 'EUR' ? '€' : '₺';
+                                        return `Verkaufspreis: ${value} ${currency}`;
+                                    }
                                 }
                             }
                         },
-                        x: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.2)',
-                                drawBorder: false
-                            },
-                            ticks: {
-                                color: 'rgba(26, 26, 26, 0.6)',
-                                font: {
-                                    family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                                    size: 12
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.2)',
+                                    drawBorder: false
                                 },
-                                padding: 10,
-                                maxTicksLimit: maxLabels
+                                ticks: {
+                                    color: 'rgba(26, 26, 26, 0.6)',
+                                    font: {
+                                        family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                                        size: 12
+                                    },
+                                    padding: 10,
+                                    callback: function(value) {
+                                        const currency = currentCurrency === 'EUR' ? '€' : '₺';
+                                        return formatPrice(value) + ' ' + currency;
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.2)',
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    color: 'rgba(26, 26, 26, 0.6)',
+                                    font: {
+                                        family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                                        size: 12
+                                    },
+                                    padding: 10,
+                                    maxTicksLimit: maxLabels
+                                }
                             }
                         }
                     }
-                }
-            });
+                });
+                
+                console.log('Chart successfully created');
+                
+            } catch (error) {
+                console.error('Error creating chart:', error);
+                ctx.fillStyle = 'rgba(239, 68, 68, 0.7)';
+                ctx.font = '16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Fehler beim Erstellen der Grafik', ctx.canvas.width / 2, ctx.canvas.height / 2);
+            }
         }
 
         // Statistiken aktualisieren
