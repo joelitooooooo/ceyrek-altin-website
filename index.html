@@ -722,68 +722,91 @@
             console.log('Price cards updated with newest values');
         }
 
-        // Chart-Daten laden mit DATE Feld statt created_at
+        // Chart-Daten laden - KORRIGIERTE Supabase Filter-Syntax
         async function loadChartData(period) {
             try {
                 console.log(`Loading chart data for period: ${period}`);
                 
                 let queryParams = {
-                    'select': 'date,sell_price_tl,sell_price_eur',  // DATE statt created_at
-                    'order': 'date.asc'                             // DATE statt created_at
+                    'select': 'date,sell_price_tl,sell_price_eur',
+                    'order': 'date.desc'  // Neueste zuerst für bessere Performance
                 };
 
-                // Bestimme den Zeitraum für die Datenabfrage
-                const now = new Date();
-                let startDate;
-
+                // Einfacher Ansatz: Lade die letzten X Einträge basierend auf Zeitraum
+                let limit;
                 switch(period) {
                     case '1D':
-                        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+                        limit = 50;   // Letzte 50 Einträge für 1 Tag
                         break;
                     case '7D':
-                        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                        limit = 200;  // Letzte 200 Einträge für 7 Tage
                         break;
                     case '1M':
-                        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                        limit = 500;  // Letzte 500 Einträge für 1 Monat
                         break;
                     case '3M':
-                        startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+                        limit = 1000; // Letzte 1000 Einträge für 3 Monate
                         break;
                     case '1Y':
-                        startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+                        limit = 2000; // Letzte 2000 Einträge für 1 Jahr
                         break;
                     default:
-                        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+                        limit = 100;
                 }
 
-                // Formatiere das Startdatum korrekt für Supabase
-                const startDateString = startDate.toISOString().slice(0, 19);
-                queryParams['gte'] = `date.${startDateString}`;  // DATE statt created_at
+                queryParams['limit'] = limit.toString();
                 
-                console.log(`Querying data from DATE: ${startDateString}`);
+                console.log(`Querying last ${limit} entries for ${period}`);
 
                 const data = await fetchFromSupabase('gold_prices', queryParams);
                 
                 console.log(`Received ${data.length} data points for ${period}`);
 
                 if (data.length === 0) {
-                    console.warn(`No data available for period ${period}`);
-                    // Versuche Fallback mit allen verfügbaren Daten
+                    console.warn(`No data available - trying to get any available data`);
+                    // Fallback: Lade einfach die letzten 50 verfügbaren Einträge
                     const fallbackData = await fetchFromSupabase('gold_prices', {
-                        'select': 'date,sell_price_tl,sell_price_eur',  // DATE statt created_at
-                        'order': 'date.desc',                           // DATE statt created_at
-                        'limit': '100'
+                        'select': 'date,sell_price_tl,sell_price_eur',
+                        'order': 'date.desc',
+                        'limit': '50'
                     });
                     
-                    if (fallbackData.length > 0) {
-                        // Umkehren für chronologische Reihenfolge
-                        goldData = fallbackData.reverse();
-                        console.log(`Using fallback data: ${goldData.length} points`);
-                    } else {
-                        goldData = [];
-                    }
+                    goldData = fallbackData.reverse(); // Chronologisch sortieren
                 } else {
-                    goldData = data;
+                    // Filtere die Daten nach Zeitraum (clientseitig)
+                    const now = new Date();
+                    let startDate;
+                    
+                    switch(period) {
+                        case '1D':
+                            startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+                            break;
+                        case '7D':
+                            startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                            break;
+                        case '1M':
+                            startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                            break;
+                        case '3M':
+                            startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+                            break;
+                        case '1Y':
+                            startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+                            break;
+                        default:
+                            startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+                    }
+                    
+                    // Clientseitige Filterung
+                    const filteredData = data.filter(item => {
+                        const itemDate = new Date(item.date);
+                        return itemDate >= startDate;
+                    });
+                    
+                    // Chronologisch sortieren (älteste zuerst für Chart)
+                    goldData = filteredData.reverse();
+                    
+                    console.log(`Filtered to ${goldData.length} entries for period ${period}`);
                 }
 
                 updateChart();
